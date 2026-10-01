@@ -34,11 +34,16 @@ jobs:
         run: python build.py
         env:
           JOTFORM_API_KEY: ${{ secrets.JOTFORM_API_KEY }}
-          MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
-          MAILJET_SECRET: ${{ secrets.MAILJET_SECRET }}
           DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
           DASHBOARD_PATH: ${{ secrets.DASHBOARD_PATH }}
-          # optional, falls die Schulliste mal umzieht:
+          # Versand über das eigene Postfach (Google Workspace):
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}   # Google-App-Passwort
+          # optional – nur setzen, wenn ihr vom Standard abweicht:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          ALERT_SENDER: ${{ secrets.ALERT_SENDER }}
+          ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
           SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
 
       - uses: actions/configure-pages@v5
@@ -51,5 +56,5 @@ jobs:
       - name: Alarm-Mail-Status prüfen
         if: steps.build.outputs.email_ok != 'true'
         run: |
-          echo "::error::Die Alarm-Mail wurde NICHT verschickt – bitte Mailjet-Secrets/Absender prüfen."
+          echo "::error::Die Alarm-Mail wurde NICHT verschickt – bitte SMTP_PASSWORD (Google-App-Passwort) / Absender prüfen."
           exit 1

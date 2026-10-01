@@ -9,7 +9,8 @@ Läuft von allein auf GitHub-Servern – nichts muss von Hand ausgelöst werden.
 3. Wendet die strikte Regel an: **jede fällige Umfrage muss über 85 % liegen** –
    sonst geht die Lampe an.
 4. Schreibt die passwortgeschützte **Status-Seite** (Inhalt verschlüsselt).
-5. Schickt die **Alarm-Mail** an Linda und Jacob.
+5. Schickt die **Alarm-Mail** an Linda und Jacob – über das **eigene Postfach**
+   (Google Workspace, SMTP). Mailjet wird dafür NICHT verwendet.
 
 Schlägt der Mailversand fehl, fällt der Lauf rot aus – dann schickt GitHub
 zusätzlich eine Fehler-Benachrichtigung (zweites Sicherheitsnetz).
@@ -32,19 +33,25 @@ dieses Ordners hochladen (`git push` oder per Weboberfläche hochziehen).
 | Name | Inhalt |
 |------|--------|
 | `JOTFORM_API_KEY` | der Jotform-API-Schlüssel (kommt separat) |
-| `MAILJET_API_KEY` | API-Key aus dem Mailjet-Konto |
-| `MAILJET_SECRET` | Secret-Key aus dem Mailjet-Konto |
-| `DASHBOARD_PASSWORD` | frei wählbares Passwort für die Status-Seite (lang!) |
 | `DASHBOARD_PATH` | der geheime Adress-Teil (kommt separat) |
+| `DASHBOARD_PASSWORD` | frei wählbares Passwort für die Status-Seite (lang!) |
+| `SMTP_PASSWORD` | Google-**App-Passwort** des Postfachs (siehe Schritt 4) |
 
-Optional: `SHEET_CSV_URL`, falls die Schulliste mal umzieht.
+Optional (nur bei Abweichung vom Standard): `SMTP_HOST` (Standard
+`smtp.gmail.com`), `SMTP_PORT` (587), `SMTP_USER`/`ALERT_SENDER`
+(Standard `linda@smartphoneaus-lebenan.de`), `ALERT_RECIPIENTS`
+(Standard linda@ + jacob@), `SHEET_CSV_URL`.
 
 ### 3. GitHub Pages aktivieren
 **Settings → Pages → Build and deployment → Source: „GitHub Actions"**.
 
-### 4. Mailjet-Absender verifizieren
-Im Mailjet-Konto den Absender `linda@smartphoneaus-lebenan.de` bestätigen
-(Sender-/Domain-Verifizierung), sonst lehnt Mailjet den Versand ab.
+### 4. App-Passwort für den Mailversand erstellen
+Die Mail geht über das eigene Postfach (Google Workspace). Google verlangt
+dafür ein **App-Passwort** (nicht das normale Konto-Passwort):
+1. Beim Google-Konto `linda@smartphoneaus-lebenan.de` die **Bestätigung in zwei
+   Schritten** aktivieren (falls noch nicht an).
+2. **Google-Konto → Sicherheit → App-Passwörter** → neues erstellen (16 Zeichen).
+3. Diese 16 Zeichen als Secret `SMTP_PASSWORD` hinterlegen.
 
 ### 5. Ersten Lauf starten
 **Actions → „SALA Monitoring" → Run workflow**. Danach läuft es täglich um
@@ -85,7 +92,7 @@ Fehlt der `Programmstart` oder liegt er in der Zukunft, wird die Klasse als
 | `monitor.py` | Rechenkern: Jotform + Sheet → 85-%-Regel |
 | `render.py` | baut Alarm-Mail und Status-Seite |
 | `crypto_pack.py` | verschlüsselt die Dashboard-Daten (passend zum Browser-Code) |
-| `send.py` | Mailversand über Mailjet |
+| `send.py` | Mailversand über das eigene Postfach (SMTP) |
 | `build.py` | Ablaufsteuerung (wird täglich ausgeführt) |
 | `.github/workflows/monitor.yml` | der tägliche Zeitplan |
 | `assets/` | Logo + Schrift (Manrope) |
