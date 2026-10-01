@@ -8,14 +8,16 @@ Konto-Passwort) – siehe README.
 import os, ssl, smtplib
 from email.message import EmailMessage
 
-HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
-PORT = int(os.environ.get("SMTP_PORT", "587"))
-SENDER = os.environ.get("ALERT_SENDER", "linda@smartphoneaus-lebenan.de").strip()
-USER = os.environ.get("SMTP_USER", "").strip() or SENDER
-PASSWORD = os.environ.get("SMTP_PASSWORD", "").strip()
-RECIPIENTS = [e.strip() for e in os.environ.get(
-    "ALERT_RECIPIENTS", "linda@smartphoneaus-lebenan.de,jacob@smartphoneaus-lebenan.de"
-).split(",") if e.strip()]
+# Hinweis: Optionale Secrets, die in der Action nicht angelegt wurden, kommen als
+# LEERER String an (nicht "nicht gesetzt"). Deshalb `... or "standard"` statt
+# os.environ.get(key, "standard") – Letzteres greift nur bei komplett fehlendem Key.
+HOST = (os.environ.get("SMTP_HOST") or "smtp.gmail.com").strip()
+PORT = int((os.environ.get("SMTP_PORT") or "587").strip())
+SENDER = (os.environ.get("ALERT_SENDER") or "linda@smartphoneaus-lebenan.de").strip()
+USER = (os.environ.get("SMTP_USER") or "").strip() or SENDER
+PASSWORD = (os.environ.get("SMTP_PASSWORD") or "").strip()
+RECIPIENTS = [e.strip() for e in (os.environ.get("ALERT_RECIPIENTS")
+    or "linda@smartphoneaus-lebenan.de,jacob@smartphoneaus-lebenan.de").split(",") if e.strip()]
 
 
 def send(subject, html, text):
