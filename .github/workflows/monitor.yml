@@ -1,0 +1,55 @@
+name: SALA Monitoring
+
+on:
+  schedule:
+    - cron: "0 5 * * *"        # täglich 05:00 UTC (= 06:00 Winter / 07:00 Sommer, Berlin)
+  workflow_dispatch:            # erlaubt manuelles Auslösen (z. B. für den ersten Test)
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: sala-monitoring
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Status berechnen, Dashboard bauen, Alarm senden
+        id: build
+        run: python build.py
+        env:
+          JOTFORM_API_KEY: ${{ secrets.JOTFORM_API_KEY }}
+          MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
+          MAILJET_SECRET: ${{ secrets.MAILJET_SECRET }}
+          DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+          DASHBOARD_PATH: ${{ secrets.DASHBOARD_PATH }}
+          # optional, falls die Schulliste mal umzieht:
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Alarm-Mail-Status prüfen
+        if: steps.build.outputs.email_ok != 'true'
+        run: |
+          echo "::error::Die Alarm-Mail wurde NICHT verschickt – bitte Mailjet-Secrets/Absender prüfen."
+          exit 1
