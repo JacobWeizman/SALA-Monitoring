@@ -57,7 +57,7 @@ def main():
     from collections import Counter
     c = Counter(d["amp"] for d in data)
     print(f"Stand {today}: gruen {c['gruen']} | gelb {c['gelb']} | rot {c['rot']} "
-          f"| wartet {c['wartet']} | gesamt {len(data)}", flush=True)
+          f"| wartet {c['wartet']} | fertig {c['fertig']} | gesamt {len(data)}", flush=True)
 
     url, _path = _dash_url()
 

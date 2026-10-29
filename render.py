@@ -9,7 +9,7 @@ SIG, GOLD, INK, SLATE, MUT = "#E86217", "#F0B646", "#3A465C", "#455577", "#77839
 SOFT, PAGE = "#FAF3EA", "#F6F4F0"
 GREEN, YELLOW, RED, GREY = "#2E9E5B", "#C98A1A", "#CC3A2F", "#9AA3B2"
 GRAD = f"linear-gradient(120deg,{SIG} 0%,{GOLD} 100%)"
-DOT = {"gruen": GREEN, "gelb": YELLOW, "rot": RED, "wartet": GREY}
+DOT = {"gruen": GREEN, "gelb": YELLOW, "rot": RED, "wartet": GREY, "fertig": GREY}
 
 
 def _b64(path):
@@ -34,7 +34,7 @@ def email_html(data, today, dash_url):
     # Schul-Rollup
     schools = {}
     for d in data:
-        if d["amp"] == "wartet":
+        if d["amp"] in ("wartet", "fertig"):
             continue
         s = schools.setdefault(d["schule"], {"g": 0, "y": 0, "r": 0, "n": 0})
         s["n"] += 1
@@ -190,7 +190,7 @@ table.detail .wk{{color:{MUT};font-size:12px;white-space:nowrap}}
 
 <script>
 const ENC = {enc_js};
-const C = {{gruen:"{GREEN}",gelb:"{YELLOW}",rot:"{RED}",wartet:"{GREY}"}};
+const C = {{gruen:"{GREEN}",gelb:"{YELLOW}",rot:"{RED}",wartet:"{GREY}",fertig:"{GREY}"}};
 const b2u = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
 async function decrypt(pw){{
@@ -212,7 +212,7 @@ function render(p){{
 
   // Schul-Rollup
   const sc = {{}};
-  data.forEach(d=>{{ if(d.amp==="wartet") return;
+  data.forEach(d=>{{ if(d.amp==="wartet"||d.amp==="fertig") return;
     const s = sc[d.schule] || (sc[d.schule]={{g:0,y:0,r:0,n:0}});
     s.n++; s[d.amp==="gruen"?"g":(d.amp==="gelb"?"y":"r")]++; }});
   const worst = s => s.r?"rot":(s.y?"gelb":"gruen");

@@ -33,6 +33,9 @@ WAVES = [
 
 THRESH = 85          # strikte Schwelle in Prozent
 GELB_AB = 70         # ab hier gelb statt rot
+DAUER = 28           # Programmlaenge in Tagen (4 Wochen)
+NACHLAUF = 14        # danach bleibt die Klasse noch so viele Tage im Blick,
+                     # weil die Abschlussreflexion verspaetet eingeht
 
 
 def _load_ids(form_id):
@@ -106,13 +109,22 @@ def compute(today=None):
         due = [(name, round(len(ids & sets[name]) / sus * 100) if sus else 0)
                for name, _, w in WAVES if wk >= w]
         worst = min((p for _, p in due), default=100)
+
+        if days >= DAUER + NACHLAUF:
+            # Programm laeuft nicht mehr. Die Klasse bleibt in den Daten, taucht
+            # aber nicht mehr in der Ampel und nicht mehr in der Alarmliste auf.
+            out.append(dict(schule=schule, klasse=klasse, sus=sus, woche=4,
+                            due=due, worst=worst, amp="fertig", bad=[],
+                            status=f"abgeschlossen am {(start + datetime.timedelta(days=DAUER)).strftime('%d.%m.%Y')}"))
+            continue
+
         amp = "gruen" if worst >= THRESH else ("gelb" if worst >= GELB_AB else "rot")
         out.append(dict(schule=schule, klasse=klasse, sus=sus, woche=min(wk, 4),
                         due=due, worst=worst, amp=amp,
                         bad=[(n, p) for n, p in due if p < THRESH], status=""))
 
     # schlechteste zuerst; "wartet" (worst=100) landet hinten
-    out.sort(key=lambda x: (0 if x["amp"] != "wartet" else 1, x["worst"], x["schule"], x["klasse"]))
+    out.sort(key=lambda x: (0 if x["amp"] not in ("wartet", "fertig") else 1, x["worst"], x["schule"], x["klasse"]))
     return out, today
 
 
@@ -121,4 +133,4 @@ if __name__ == "__main__":
     from collections import Counter
     c = Counter(d["amp"] for d in data)
     print(f"Stand {today}: gruen {c['gruen']} | gelb {c['gelb']} | rot {c['rot']} "
-          f"| wartet {c['wartet']} | gesamt {len(data)}")
+          f"| wartet {c['wartet']} | fertig {c['fertig']} | gesamt {len(data)}")
